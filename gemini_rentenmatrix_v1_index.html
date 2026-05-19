@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Renten-Dashboard — Exakte Abzüge nach EStG & SGB (2026)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-main: #0b0f19;
+            --bg-card: #141b2d;
+            --bg-control: #1f2942;
+            --border-glow: #242f4d;
+            
+            --text-title: #f8fafc;
+            --text-main: #cbd5e1;
+            --text-muted: #64748b;
+            
+            --magic-cyan: #38bdf8;
+            --magic-purple: #a855f7;
+            --magic-lime: #ccff00;
+            --magic-orange: #f97316;
+            
+            --block-bg-a: #131c2e;
+            --block-bg-b: #1c273f;
+            --group-border: #38bdf8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 40px 20px;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container { max-width: 1650px; margin: 0 auto; }
+        
+        header { text-align: center; margin-bottom: 35px; padding: 20px; }
+        header h1 { 
+            font-size: 2.2rem; 
+            color: var(--text-title); 
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #38bdf8, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        header p { color: var(--text-muted); font-size: 1.1rem; }
+        
+        .control-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glow);
+            padding: 25px;
+            border-radius: 16px;
+            margin-bottom: 35px;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        }
+        .control-group { display: flex; flex-direction: column; gap: 10px; max-width: 550px; margin: 0 auto; }
+        label { font-weight: 600; color: var(--text-title); font-size: 1rem; text-align: center; letter-spacing: 0.05em; text-transform: uppercase; }
+        select { 
+            padding: 14px; border-radius: 10px; border: 1px solid var(--border-glow); 
+            font-size: 1rem; background-color: var(--bg-control); color: var(--text-title);
+            outline: none; text-align: center; cursor: pointer; transition: all 0.3s ease;
+        }
+        select:focus { border-color: var(--magic-cyan); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
+
+        .content-panel { 
+            background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-glow); 
+            padding: 30px; margin-bottom: 35px; box-shadow: 0 20px 40px -15px rgba(0,0,0,0.6);
+        }
+        .content-panel h2 { 
+            font-size: 1.3rem; margin-bottom: 25px; color: var(--text-title); font-weight: 700;
+            padding-bottom: 12px; border-bottom: 1px solid var(--border-glow);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .content-panel h2::before { content: ''; display: inline-block; width: 4px; height: 18px; background: var(--magic-purple); border-radius: 2px; }
+        
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: center; font-size: 0.85rem; }
+        th, td { padding: 10px 8px; border: 1px solid var(--border-glow); }
+        th { background-color: var(--bg-control); color: var(--text-title); font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        .block-type-a { background-color: var(--block-bg-a); }
+        .block-type-b { background-color: var(--block-bg-b); }
+        .border-top-highlight { border-top: 2px solid var(--group-border) !important; }
+        
+        .date-cell { font-weight: 800; color: #fff; font-size: 1.05rem; text-align: left; vertical-align: middle; padding-left: 15px; }
+        .info-badge { display: block; font-size: 0.8rem; color: var(--text-main); font-weight: 400; margin-top: 4px; opacity: 0.85; }
+        .rw-cell { font-size: 0.85rem; text-align: left; font-weight: 600; color: #94a3b8; vertical-align: middle; }
+
+        .val-block { display: flex; flex-direction: column; gap: 4px; align-items: center; width: 100%; }
+        .ep-row { display: flex; gap: 6px; font-size: 0.8rem; font-weight: 600; }
+        .b-ep { color: var(--magic-lime); }
+        .b-missing { color: var(--magic-orange); }
+        
+        .totals-row { display: flex; justify-content: space-between; width: 100%; font-size: 0.85rem; border-bottom: 1px dashed var(--border-glow); padding-bottom: 2px; }
+        .b-brutto { font-weight: 700; color: #f8fafc; }
+        
+        .split-container { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 2px; 
+            width: 100%; 
+            background: rgba(0,0,0,0.3); 
+            border-radius: 6px; 
+            padding: 5px;
+            font-size: 0.75rem;
+        }
+        .split-segment { display: flex; flex-direction: column; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 2px; margin-bottom: 2px; }
+        .split-segment:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+        .split-title { font-weight: 700; color: var(--magic-cyan); text-align: left; text-transform: uppercase; font-size: 0.7rem; }
+        .split-title.bav { color: var(--magic-purple); }
+        
+        .data-line { display: flex; justify-content: space-between; color: #cbd5e1; }
+        .data-line.minus { color: #f87171; }
+
+        .b-netto { 
+            font-size: 0.95rem; font-weight: 700; color: #ffffff; 
+            background: linear-gradient(135deg, rgba(56,189,248,0.2) 0%, rgba(168,85,247,0.2) 100%);
+            border: 1px solid rgba(255,255,255,0.1); padding: 3px 8px; border-radius: 6px; 
+            display: inline-block; min-width: 100px; text-shadow: 0 0 10px rgba(255,255,255,0.2);
+            text-align: center; margin-top: 2px;
+        }
+
+        .chart-container { position: relative; height: 500px; width: 100%; }
+        .footer-note { font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 30px; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>PROGNOSE-DASHBOARD: RENTENMATRIX</h1>
+        <p>Geprüfte Steuer- & SV-Berechnung (Splittingtarif 2026, freiwillig GKV versichert, strikte SGB V-Rangfolge)</p>
+    </header>
+
+    <div class="control-panel">
+        <div class="control-group">
+            <label for="salarySelect">Wachstum eigener Jahresverdienst ab 2029</label>
+            <select id="salarySelect" onchange="recalculateAll()">
+                <option value="0.00">Eingefroren (0,0% p.a.)</option>
+                <option value="0.015">Konservativer Pfad (+1,5% p.a.)</option>
+                <option value="0.020" selected>Realistischer Pfad (+2,0% p.a.)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="content-panel">
+        <h2>Renteneintrittsmatrix mit gesetzlichen Abzügen (Rechtsstand 2026)</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 210px;">Renteneintritt & Basisinfos</th>
+                        <th style="width: 170px;">Ausprägung Rentenwert</th>
+                        <th>Durchschnittsentgelt:<br>Geringes Wachstum (+1,5% p.a.)</th>
+                        <th>Durchschnittsentgelt:<br>Moderates Wachstum (+2,5% p.a.)</th>
+                        <th>Durchschnittsentgelt:<br>Starkes Wachstum (+3,5% p.a.)</th>
+                    </tr>
+                </thead>
+                <tbody id="matrix-tbody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="content-panel">
+        <h2>Visualisierung der Netto-Gesamtrenten (Szenario: Realistischer Rentenwert +2,0%)</h2>
+        <div class="chart-container">
+            <canvas id="rentenChart"></canvas>
+        </div>
+    </div>
+
+    <p class="footer-note">
+        *Berechnungsbasis: Startwert 45,0822 EP (31.12.2023). Bis Ende 2026 fixiert auf +1,85 EP/Jahr. Die bAV ist dauerhaft mit 1.678,00 € brutto addiert. SV-Abzüge nach Status "freiwillig GKV versichert mit Kindern" (KV: 14,6% + 2,9% Zusatz; PV: 3,4%) in strikter Rangfolge gem. § 238a SGB V (erst GRV, dann bAV bis max. BBG 2026 von 5.812,50 €) inkl. DRV-Zuschuss auf GRV. Einkommensteuer nutzt exakten Splittingtarif gem. § 32a EStG 2026 (Grundfreibetrag 24.696 € p.a. bei ZV) und den durch das Wachstumschancengesetz regulierten Rentenbesteuerungsanteil (90% für 2038).
+    </p>
+</div>
+
+<script>
+    const config = {
+        epStart: 45.0822,
+        bav: 1678.00,
+        salaryFixed: 95856.56, 
+        de2024: 45358,
+        rwBase: 42.52,
+        bbg2026: 5812.50
+    };
+
+    const timelines = [
+        { dateStr: "01.01.2035", year: 2035, month: 0, deltaYears: 8.63, discount: 10.8 },
+        { dateStr: "01.07.2035", year: 2035, month: 6, deltaYears: 9.12, discount: 9.0 },
+        { dateStr: "01.01.2036", year: 2036, month: 0, deltaYears: 9.63, discount: 7.2 },
+        { dateStr: "01.07.2036", year: 2036, month: 6, deltaYears: 10.12, discount: 5.4 },
+        { dateStr: "01.01.2037", year: 2037, month: 0, deltaYears: 10.63, discount: 3.6 },
+        { dateStr: "01.07.2037", year: 2037, month: 6, deltaYears: 11.12, discount: 1.8 },
+        { dateStr: "01.01.2038", year: 2038, month: 0, deltaYears: 11.63, discount: 0.0 }
+    ];
+
+    const rwOptions = [
+        { name: "Eingefroren (0,0%)", rate: 0.00 },
+        { name: "Konservativ (+1,0%)", rate: 0.01 },
+        { name: "Realistisch (+2,0%)", rate: 0.02 },
+        { name: "Optimistisch (+2,5%)", rate: 0.025 }
+    ];
+
+    const deOptions = [
+        { name: "Gering (+1,5%)", rate: 0.015 },
+        { name: "Moderat (+2,5%)", rate: 0.025 },
+        { name: "Stark (+3,5%)", rate: 0.035 }
+    ];
+
+    let myChart = null;
+
+    function getCalculatedEP(t, deRate, salaryRate) {
+        let ep = config.epStart + (1.85 * 3); 
+        let deCurrent = config.de2024;
+        let mySalaryCurrent = config.salaryFixed; 
+        deCurrent = deCurrent * (1 + deRate) * (1 + deRate);
+        let currentYear = 2027;
+        
+        while (currentYear <= t.year) {
+            let shareOfYear = 1.0;
+            if (currentYear === t.year) {
+                if (t.month === 0) break; 
+                else shareOfYear = t.month / 12; 
+            }
+            
+            let effectiveDe = deCurrent * (1 + (deRate * shareOfYear));
+            let effectiveSalary = mySalaryCurrent;
+            if (currentYear > 2028) {
+                effectiveSalary = mySalaryCurrent * (1 + (salaryRate * shareOfYear));
+            }
+
+            if (shareOfYear > 0) {
+                let factor = effectiveSalary / effectiveDe;
+                ep += Math.min(2.05, factor) * shareOfYear; 
+            }
+            
+            if (currentYear < t.year || (currentYear === t.year && t.month > 0)) {
+                deCurrent = deCurrent * (1 + deRate);
+                if (currentYear >= 2028) mySalaryCurrent = mySalaryCurrent * (1 + salaryRate);
+            }
+            currentYear++;
+        }
+        return ep;
+    }
+
+    // Splittingtarif 2026 nach § 32a EStG
+    function calculateTaxSplitting2026(annualIncome) {
+        let zve = annualIncome / 2; // Einkommen halbieren
+        let est = 0;
+        
+        if (zve <= 12348) {
+            est = 0;
+        } else if (zve <= 17799) {
+            let y = (zve - 12348) / 10000;
+            est = (914.51 * y + 1400) * y;
+        } else if (zve <= 69878) {
+            let z = (zve - 17799) / 10000;
+            est = (173.1 * z + 2397) * z + 1034.87;
+        } else if (zve <= 277825) {
+            est = 0.42 * zve - 11135.63;
+        } else {
+            est = 0.45 * zve - 19470.38;
+        }
+        
+        return Math.max(0, est * 2); // Steuer verdoppeln
+    }
+
+    function calculateValues(t, rwRate, deRate, salaryRate) {
+        const ep = getCalculatedEP(t, deRate, salaryRate);
+        
+        let effectiveRwYears = t.year - 2026;
+        if (t.month < 6) effectiveRwYears -= 1; 
+        let rwAtRetirement = config.rwBase * Math.pow(1 + rwRate, Math.max(0, effectiveRwYears));
+
+        let grvBrutto = ep * rwAtRetirement * (1 - (t.discount / 100));
+        let bavBrutto = config.bav;
+        let totalBrutto = grvBrutto + bavBrutto;
+        
+        // --- 1. SOZIALVERSICHERUNG (Strikte Rangfolge SGB V § 238a) ---
+        let kvRate = 0.175; // 14.6% + 2.9%
+        let pvRate = 0.034; // 3.4% Basis-PV mit Kindern
+        
+        let assessedGrv = Math.min(grvBrutto, config.bbg2026);
+        let remainingBbgForBav = Math.max(0, config.bbg2026 - assessedGrv);
+        let assessedBav = Math.min(bavBrutto, remainingBbgForBav);
+        
+        let kvPvGrv = (assessedGrv * (kvRate + pvRate)) - (assessedGrv * 0.073); // Abzug DRV-Zuschuss (7,3%)
+        let kvPvBav = assessedBav * (kvRate + pvRate);
+        
+        let totalKvPv = kvPvGrv + kvPvBav;
+
+        // --- 2. STEUERBERECHNUNG (Wachstumschancengesetz 2024 & Splitting 2026) ---
+        // Anstieg um 0,5% p.a. ab 2023 (2022 = 82%)
+        let taxPortion = 0.825 + (t.year - 2023) * 0.005;
+        if (taxPortion > 1.0) taxPortion = 1.0;
+        
+        let grvTaxFreeAnnual = grvBrutto * 12 * (1 - taxPortion);
+        let taxableGrvAnnual = (grvBrutto * 12) - grvTaxFreeAnnual;
+        let taxableBavAnnual = bavBrutto * 12; // 100% steuerpflichtig laut Vorgabe
+        let totalTaxableAnnual = taxableGrvAnnual + taxableBavAnnual;
+        
+        let totalAnnualTax = calculateTaxSplitting2026(totalTaxableAnnual);
+        let totalMonthlyTax = totalAnnualTax / 12;
+        
+        // Proportionale Aufteilung der ermittelten Steuer zur Visualisierung
+        let taxGrv = totalMonthlyTax * (taxableGrvAnnual / (totalTaxableAnnual || 1));
+        let taxBav = totalMonthlyTax * (taxableBavAnnual / (totalTaxableAnnual || 1));
+        
+        let totalNetto = totalBrutto - totalKvPv - totalMonthlyTax;
+
+        return {
+            ep: ep,
+            totalBrutto: Math.round(totalBrutto),
+            totalNetto: Math.round(totalNetto),
+            grv: {
+                brutto: Math.round(grvBrutto),
+                kvPv: Math.round(kvPvGrv),
+                tax: Math.round(taxGrv)
+            },
+            bav: {
+                brutto: Math.round(bavBrutto),
+                kvPv: Math.round(kvPvBav),
+                tax: Math.round(taxBav)
+            }
+        };
+    }
+
+    function recalculateAll() {
+        const salaryRate = parseFloat(document.getElementById('salarySelect').value);
+        const tbody = document.getElementById('matrix-tbody');
+        
+        let htmlBuffer = "";
+        let chartLabels = [];
+        let chartDataGering = [];
+        let chartDataModerat = [];
+        let chartDataStark = [];
+
+        const maxTimeline = timelines[timelines.length - 1];
+
+        timelines.forEach((t, tIdx) => {
+            const blockClass = tIdx % 2 === 0 ? "block-type-a" : "block-type-b";
+            chartLabels.push(t.dateStr);
+
+            rwOptions.forEach((rwOpt, rIdx) => {
+                let rowHtml = `<tr class="${blockClass} ${rIdx === 0 ? 'border-top-highlight' : ''}">`;
+                
+                if (rIdx === 0) {
+                    rowHtml += `
+                        <td rowspan="4" class="date-cell">
+                            ${t.dateStr}
+                            <span class="info-badge">Abschlag: <strong>${t.discount.toFixed(1)}%</strong></span>
+                        </td>`;
+                }
+
+                rowHtml += `<td class="rw-cell">${rwOpt.name}</td>`;
+
+                deOptions.forEach((deOpt, dIdx) => {
+                    let res = calculateValues(t, rwOpt.rate, deOpt.rate, salaryRate);
+                    
+                    const maxEpForThisColumn = getCalculatedEP(maxTimeline, deOpt.rate, salaryRate);
+                    const missingEp = Math.max(0, maxEpForThisColumn - res.ep).toFixed(2);
+                    const missingText = missingEp > 0 ? `(-${missingEp})` : '';
+
+                    rowHtml += `
+                        <td>
+                            <div class="val-block">
+                                <div class="ep-row">
+                                    <span class="b-ep">${res.ep.toFixed(2)} EP</span>
+                                    <span class="b-missing">${missingText}</span>
+                                </div>
+                                
+                                <div class="totals-row">
+                                    <span class="b-brutto">Ges-B: ${res.totalBrutto.toLocaleString('de-DE')} €</span>
+                                </div>
+
+                                <div class="split-container">
+                                    <div class="split-segment">
+                                        <div class="split-title">Gesetzliche Rente (GRV)</div>
+                                        <div class="data-line"><span>Brutto:</span><span>${res.grv.brutto.toLocaleString('de-DE')} €</span></div>
+                                        <div class="data-line minus"><span>- KV/PV:</span><span>${res.grv.kvPv.toLocaleString('de-DE')} €</span></div>
+                                        <div class="data-line minus"><span>- Steuer:</span><span>${res.grv.tax.toLocaleString('de-DE')} €</span></div>
+                                    </div>
+                                    <div class="split-segment">
+                                        <div class="split-title bav">Betriebsrente (bAV)</div>
+                                        <div class="data-line"><span>Brutto:</span><span>${res.bav.brutto.toLocaleString('de-DE')} €</span></div>
+                                        <div class="data-line minus"><span>- KV/PV:</span><span>${res.bav.kvPv.toLocaleString('de-DE')} €</span></div>
+                                        <div class="data-line minus"><span>- Steuer:</span><span>${res.bav.tax.toLocaleString('de-DE')} €</span></div>
+                                    </div>
+                                </div>
+
+                                <span class="b-netto">Ges-N: ${res.totalNetto.toLocaleString('de-DE')} €</span>
+                            </div>
+                        </td>`;
+
+                    if (rIdx === 2) {
+                        if (dIdx === 0) chartDataGering.push(res.totalNetto);
+                        if (dIdx === 1) chartDataModerat.push(res.totalNetto);
+                        if (dIdx === 2) chartDataStark.push(res.totalNetto);
+                    }
+                });
+
+                rowHtml += `</tr>`;
+                htmlBuffer += rowHtml;
+            });
+        });
+
+        tbody.innerHTML = htmlBuffer;
+        renderGroupedBarChart(chartLabels, chartDataGering, chartDataModerat, chartDataStark);
+    }
+
+    function renderGroupedBarChart(labels, gering, moderat, stark) {
+        const ctx = document.getElementById('rentenChart').getContext('2d');
+        if (myChart) {
+            myChart.destroy();
+        }
+
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Durchschnittsentgelt: Geringes Wachstum (+1,5%)',
+                        data: gering,
+                        backgroundColor: '#ccff00',
+                        hoverBackgroundColor: '#ddff44',
+                        borderRadius: 6
+                    },
+                    {
+                        label: 'Durchschnittsentgelt: Moderates Wachstum (+2,5%)',
+                        data: moderat,
+                        backgroundColor: '#38bdf8',
+                        hoverBackgroundColor: '#7dd3fc',
+                        borderRadius: 6
+                    },
+                    {
+                        label: 'Durchschnittsentgelt: Starkes Wachstum (+3,5%)',
+                        data: stark,
+                        backgroundColor: '#a855f7',
+                        hoverBackgroundColor: '#c084fc',
+                        borderRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { 
+                        position: 'top', 
+                        labels: { color: '#f8fafc', font: { size: 11, weight: '500' }, boxWidth: 12, padding: 20 } 
+                    },
+                    tooltip: { mode: 'index', intersect: false }
+                },
+                scales: {
+                    y: {
+                        grid: { color: '#242f4d' },
+                        title: { display: true, text: 'Netto-Gesamtrente (€)', color: '#94a3b8', font: { weight: 'bold' } },
+                        ticks: { color: '#94a3b8', callback: function(value) { return value.toLocaleString('de-DE') + ' €'; } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        title: { display: true, text: 'Renteneintrittsdatum', color: '#94a3b8', font: { weight: 'bold' } },
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+    }
+
+    window.onload = recalculateAll;
+</script>
+</body>
+</html>
