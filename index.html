@@ -3,477 +3,614 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Renten-Dashboard — Exakte Abzüge nach EStG & SGB (2026)</title>
+    <title>RENTENPROGNOSEN & -SZENARIEN - EXPERT SYSTEM</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-main: #0b0f19;
-            --bg-card: #141b2d;
-            --bg-control: #1f2942;
-            --border-glow: #242f4d;
-            
-            --text-title: #f8fafc;
-            --text-main: #cbd5e1;
-            --text-muted: #64748b;
-            
-            --magic-cyan: #38bdf8;
-            --magic-purple: #a855f7;
-            --magic-lime: #ccff00;
-            --magic-orange: #f97316;
-            
-            --block-bg-a: #131c2e;
-            --block-bg-b: #1c273f;
-            --group-border: #38bdf8;
+            --bg-main: #0b0f19; --bg-card: #141b2d; --bg-control: #1f2942;
+            --border-glow: #242f4d; --text-title: #f8fafc; --text-main: #cbd5e1;
+            --text-muted: #64748b; --magic-cyan: #38bdf8; --magic-purple: #a855f7;
+            --magic-lime: #ccff00; --magic-orange: #f97316; --tab-active: #2563eb;
+            --block-bg-a: #131c2e; --block-bg-b: #1c273f; --group-border: #38bdf8;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            line-height: 1.5;
-            padding: 40px 20px;
-            -webkit-font-smoothing: antialiased;
-        }
-        .container { max-width: 1650px; margin: 0 auto; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background-color: var(--bg-main); color: var(--text-main); line-height: 1.5; padding: 20px; }
+        .container { max-width: 1700px; margin: 0 auto; }
         
-        header { text-align: center; margin-bottom: 35px; padding: 20px; }
-        header h1 { 
-            font-size: 2.2rem; 
-            color: var(--text-title); 
-            font-weight: 800;
-            letter-spacing: -0.025em;
-            margin-bottom: 10px;
-            background: linear-gradient(to right, #38bdf8, #a855f7);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        header p { color: var(--text-muted); font-size: 1.1rem; }
+        header { text-align: center; margin-bottom: 25px; }
+        header h1 { font-size: 2.2rem; color: var(--text-title); font-weight: 800; background: linear-gradient(to right, #38bdf8, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; letter-spacing: 1px; }
         
-        .control-panel {
-            background: var(--bg-card);
-            border: 1px solid var(--border-glow);
-            padding: 25px;
-            border-radius: 16px;
-            margin-bottom: 35px;
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
-        }
-        .control-group { display: flex; flex-direction: column; gap: 10px; max-width: 550px; margin: 0 auto; }
-        label { font-weight: 600; color: var(--text-title); font-size: 1rem; text-align: center; letter-spacing: 0.05em; text-transform: uppercase; }
-        select { 
-            padding: 14px; border-radius: 10px; border: 1px solid var(--border-glow); 
-            font-size: 1rem; background-color: var(--bg-control); color: var(--text-title);
-            outline: none; text-align: center; cursor: pointer; transition: all 0.3s ease;
-        }
-        select:focus { border-color: var(--magic-cyan); box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); }
+        .controls-wrapper { display: flex; flex-wrap: wrap; gap: 15px; background: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px solid var(--border-glow); margin-bottom: 20px; justify-content: center; }
+        .control-item { display: flex; flex-direction: column; gap: 5px; }
+        label { font-size: 0.85rem; font-weight: 600; color: var(--text-title); text-transform: uppercase; }
+        select { padding: 10px; border-radius: 8px; border: 1px solid var(--border-glow); background-color: var(--bg-control); color: var(--text-title); outline: none; cursor: pointer; }
+        .checkbox-item { flex-direction: row; align-items: center; gap: 10px; background: var(--bg-control); padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border-glow); }
+        .checkbox-item input { width: 18px; height: 18px; cursor: pointer; }
 
-        .content-panel { 
-            background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-glow); 
-            padding: 30px; margin-bottom: 35px; box-shadow: 0 20px 40px -15px rgba(0,0,0,0.6);
-        }
-        .content-panel h2 { 
-            font-size: 1.3rem; margin-bottom: 25px; color: var(--text-title); font-weight: 700;
-            padding-bottom: 12px; border-bottom: 1px solid var(--border-glow);
-            display: flex; align-items: center; gap: 10px;
-        }
-        .content-panel h2::before { content: ''; display: inline-block; width: 4px; height: 18px; background: var(--magic-purple); border-radius: 2px; }
-        
-        .table-container { overflow-x: auto; }
+        .tabs { display: flex; border-bottom: 1px solid var(--border-glow); margin-bottom: 20px; }
+        .tab-btn { background: transparent; border: none; color: var(--text-muted); padding: 15px 25px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .tab-btn:hover { color: var(--text-title); }
+        .tab-btn.active { color: var(--magic-cyan); border-bottom: 2px solid var(--magic-cyan); }
+        .tab-content { display: none; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-glow); padding: 25px; animation: fadeIn 0.4s; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .table-container { overflow-x: auto; margin-bottom: 25px; }
         table { width: 100%; border-collapse: collapse; text-align: center; font-size: 0.85rem; }
-        th, td { padding: 10px 8px; border: 1px solid var(--border-glow); }
-        th { background-color: var(--bg-control); color: var(--text-title); font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
-        
+        th, td { padding: 10px; border: 1px solid var(--border-glow); }
+        th { background-color: var(--bg-control); color: var(--text-title); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px; }
         .block-type-a { background-color: var(--block-bg-a); }
         .block-type-b { background-color: var(--block-bg-b); }
-        .border-top-highlight { border-top: 2px solid var(--group-border) !important; }
+        .date-cell { font-weight: bold; color: #fff; font-size: 1rem; text-align: left; }
+        .rw-cell { font-weight: bold; color: #94a3b8; text-align: left; }
         
-        .date-cell { font-weight: 800; color: #fff; font-size: 1.05rem; text-align: left; vertical-align: middle; padding-left: 15px; }
-        .info-badge { display: block; font-size: 0.8rem; color: var(--text-main); font-weight: 400; margin-top: 4px; opacity: 0.85; }
-        .rw-cell { font-size: 0.85rem; text-align: left; font-weight: 600; color: #94a3b8; vertical-align: middle; }
-
-        .val-block { display: flex; flex-direction: column; gap: 4px; align-items: center; width: 100%; }
-        .ep-row { display: flex; gap: 6px; font-size: 0.8rem; font-weight: 600; }
-        .b-ep { color: var(--magic-lime); }
-        .b-missing { color: var(--magic-orange); }
-        
-        .totals-row { display: flex; justify-content: space-between; width: 100%; font-size: 0.85rem; border-bottom: 1px dashed var(--border-glow); padding-bottom: 2px; }
-        .b-brutto { font-weight: 700; color: #f8fafc; }
-        
-        .split-container { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 2px; 
-            width: 100%; 
-            background: rgba(0,0,0,0.3); 
-            border-radius: 6px; 
-            padding: 5px;
-            font-size: 0.75rem;
-        }
-        .split-segment { display: flex; flex-direction: column; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 2px; margin-bottom: 2px; }
-        .split-segment:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
-        .split-title { font-weight: 700; color: var(--magic-cyan); text-align: left; text-transform: uppercase; font-size: 0.7rem; }
-        .split-title.bav { color: var(--magic-purple); }
-        
+        .val-block { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+        .b-ep { color: var(--magic-lime); font-weight: bold; }
+        .b-brutto { font-weight: bold; color: #f8fafc; border-bottom: 1px dashed var(--border-glow); padding-bottom: 2px; width: 100%; }
+        .split-container { width: 100%; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 6px; font-size: 0.75rem; text-align: left; }
         .data-line { display: flex; justify-content: space-between; color: #cbd5e1; }
         .data-line.minus { color: #f87171; }
+        .b-netto { font-weight: bold; color: #fff; background: linear-gradient(135deg, rgba(56,189,248,0.2), rgba(168,85,247,0.2)); padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); margin-top: 4px; }
+        .b-netto-real { font-size: 0.8rem; color: var(--magic-orange); font-weight: bold; margin-top: 2px; }
 
-        .b-netto { 
-            font-size: 0.95rem; font-weight: 700; color: #ffffff; 
-            background: linear-gradient(135deg, rgba(56,189,248,0.2) 0%, rgba(168,85,247,0.2) 100%);
-            border: 1px solid rgba(255,255,255,0.1); padding: 3px 8px; border-radius: 6px; 
-            display: inline-block; min-width: 100px; text-shadow: 0 0 10px rgba(255,255,255,0.2);
-            text-align: center; margin-top: 2px;
-        }
-
-        .chart-container { position: relative; height: 500px; width: 100%; }
-        .footer-note { font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 30px; line-height: 1.6; }
+        .content-section h3 { color: var(--magic-cyan); margin-top: 30px; margin-bottom: 15px; border-bottom: 1px solid var(--border-glow); padding-bottom: 6px; font-size: 1.3rem; text-transform: uppercase; }
+        .content-section h4 { color: #fff; margin-top: 20px; margin-bottom: 8px; font-size: 1.05rem; border-left: 3px solid var(--magic-purple); padding-left: 8px; }
+        .content-section p { margin-bottom: 12px; color: var(--text-main); font-size: 0.95rem; text-align: justify; }
+        .formula-block { background: rgba(0, 0, 0, 0.4); padding: 12px; border-radius: 6px; border: 1px dashed var(--border-glow); font-family: "Courier New", Courier, monospace; color: var(--magic-lime); margin: 10px 0; font-size: 0.9rem; }
+        ul { margin-left: 20px; margin-bottom: 15px; }
+        li { margin-bottom: 6px; color: var(--text-main); }
+        li strong { color: #fff; }
+        .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .chart-wrapper { height: 400px; position: relative; }
+        .hist-table th { background-color: #172237; color: var(--magic-cyan); }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>PROGNOSE-DASHBOARD: RENTENMATRIX</h1>
-        <p>Geprüfte Steuer- & SV-Berechnung (Splittingtarif 2026, freiwillig GKV versichert, strikte SGB V-Rangfolge)</p>
+        <h1>RENTENPROGNOSEN & -SZENARIEN</h1>
     </header>
 
-    <div class="control-panel">
-        <div class="control-group">
-            <label for="salarySelect">Wachstum eigener Jahresverdienst ab 2029</label>
+    <div class="controls-wrapper">
+        <div class="control-item">
+            <label>Jahresverdienst Wachstum (ab 2029)</label>
             <select id="salarySelect" onchange="recalculateAll()">
-                <option value="0.00">Eingefroren (0,0% p.a.)</option>
-                <option value="0.015">Konservativer Pfad (+1,5% p.a.)</option>
-                <option value="0.020" selected>Realistischer Pfad (+2,0% p.a.)</option>
+                <option value="0.00" selected>Eingefroren (0,0% p.a.)</option>
+                <option value="0.010">Gering (+1,0% p.a.)</option>
+                <option value="0.015">Moderat (+1,5% p.a.)</option>
+                <option value="0.020">Realistisch (+2,0% p.a.)</option>
+                <option value="0.025">Optimistisch (+2,5% p.a.)</option>
             </select>
+        </div>
+        <div class="control-item">
+            <label>BBG Dynamik (ab 2026)</label>
+            <select id="bbgSelect" onchange="recalculateAll()">
+                <option value="fix">Keine Steigerung (Fix 7.650,00 € / M.)</option>
+                <option value="dynamic" selected>Koppelung an Durchschnittsentgelt</option>
+            </select>
+        </div>
+        <div class="control-item checkbox-item">
+            <input type="checkbox" id="inflationCheck" onchange="recalculateAll()" checked>
+            <label for="inflationCheck">Kaufkraftbereinigung (2% p.a.)</label>
+        </div>
+        <div class="control-item checkbox-item">
+            <input type="checkbox" id="progressionCheck" onchange="recalculateAll()" checked>
+            <label for="progressionCheck">Tarifdecke anpassen (Kalte Progression, 1,5% p.a.)</label>
         </div>
     </div>
 
-    <div class="content-panel">
-        <h2>Renteneintrittsmatrix mit gesetzlichen Abzügen (Rechtsstand 2026)</h2>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-matrix', this)">Alle Rentenprognosen & -szenarien</button>
+        <button class="tab-btn" onclick="switchTab('tab-charts', this); renderCharts();">Visualisierung</button>
+        <button class="tab-btn" onclick="switchTab('tab-history', this)">Historische Daten & Verdienst</button>
+        <button class="tab-btn" onclick="switchTab('tab-method', this)">Ausführliche Methodik & Logik</button>
+    </div>
+
+    <div id="tab-matrix" class="tab-content active">
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 210px;">Renteneintritt & Basisinfos</th>
-                        <th style="width: 170px;">Ausprägung Rentenwert</th>
-                        <th>Durchschnittsentgelt:<br>Geringes Wachstum (+1,5% p.a.)</th>
-                        <th>Durchschnittsentgelt:<br>Moderates Wachstum (+2,5% p.a.)</th>
-                        <th>Durchschnittsentgelt:<br>Starkes Wachstum (+3,5% p.a.)</th>
+                        <th style="width: 12%;">Renteneintritt</th>
+                        <th style="width: 12%;">Rentenwert</th>
+                        <th>Entgelt: Gering (+1,0%)</th>
+                        <th>Entgelt: Moderat (+1,5%)</th>
+                        <th>Entgelt: Realistisch (+2,0%)</th>
+                        <th>Entgelt: Optimistisch (+2,5%)</th>
                     </tr>
                 </thead>
-                <tbody id="matrix-tbody">
+                <tbody id="matrix-tbody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="tab-charts" class="tab-content">
+        <div class="chart-grid">
+            <div class="chart-wrapper">
+                <h3 style="text-align:center; color: var(--magic-lime); margin-bottom:10px;">Gesamt-Brutto (Realistischer Rentenwert)</h3>
+                <canvas id="bruttoChart"></canvas>
+            </div>
+            <div class="chart-wrapper">
+                <h3 style="text-align:center; color: var(--magic-cyan); margin-bottom:10px;">Gesamt-Netto (Realistischer Rentenwert)</h3>
+                <canvas id="nettoChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-history" class="tab-content content-section">
+        <h3>Entwicklung makroökonomischer Kernfaktoren & Verdienstreihe (7-Spalten-Ansicht)</h3>
+        <p style="margin-bottom: 15px;">
+            Diese Matrix führt historische Meilensteine und künftige Projektionen zusammen. Die Spalte <strong>Erreichte EP (Jahr)</strong> ermittelt präzise den jährlichen Rentenzuwachs. Er berechnet sich aus dem Quotienten aus deinem (gedeckelten) Jahresverdienst und dem Durchschnittsentgelt des Bundes. 
+            Zukunftswerte ab 2027 spiegeln das <em>realistische Rentenwertszenario (+2,0% p.a.)</em> und die <em>realistische Entgeltdynamik (+2,0% p.a.)</em> wider.
+        </p>
+        
+        <div class="table-container">
+            <table class="hist-table">
+                <thead>
+                    <tr>
+                        <th style="width: 8%;">Jahr</th>
+                        <th style="width: 15%;">Rentenwert (Monat)</th>
+                        <th style="width: 12%;">Δ RW</th>
+                        <th style="width: 18%;">Durchschnittsentgelt (Jahr)</th>
+                        <th style="width: 12%;">Δ DE</th>
+                        <th style="width: 18%;">Dein Jahresverdienst</th>
+                        <th style="width: 17%;">Erreichte EP (Jahr)</th>
+                    </tr>
+                </thead>
+                <tbody id="combined-history-tbody"></tbody>
+            </table>
+        </div>
+
+        <h3>Gesetzliche Besteuerungsmatrix (§ 22 EStG — Wachstumschancengesetz)</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Kohorten-Jahr (Eintritt)</th>
+                        <th>Steuerpflichtiger Anteil</th>
+                        <th>Rentenfreibetrag (Lebenslanger Festwert)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>2020</td><td>80,0 %</td><td>20,0 % des Bruttowertes im Erstjahr</td></tr>
+                    <tr><td>2023</td><td>82,5 %</td><td>17,5 % des Bruttowertes im Erstjahr</td></tr>
+                    <tr><td>2024</td><td>83,0 %</td><td>17,0 % des Bruttowertes im Erstjahr</td></tr>
+                    <tr><td>2025</td><td>83,5 %</td><td>16,5 % des Bruttowertes im Erstjahr</td></tr>
+                    <tr><td>2030</td><td>86,0 %</td><td>14,0 % des Bruttowertes im Erstjahr</td></tr>
+                    <tr><td>2035</td><td>88,5 %</td><td>11,5 % des Bruttowertes im Erstjahr</td></tr>
+                    <tr style="border: 2px solid var(--magic-cyan); font-weight: bold;"><td>2038 (Zielhorizont)</td><td>90,0 %</td><td>10,0 % des Bruttowertes im Erstjahr</td></tr>
+                    <tr><td style="color:var(--text-muted); font-size:0.8rem;" colspan="3">Rechtsstand: Wachstumschancengesetz (BGBl. I 2024 Nr. 101) — Steigerung +0,5 % p.a. ab Kohorte 2023 bis 100 % in 2058</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
 
-    <div class="content-panel">
-        <h2>Visualisierung der Netto-Gesamtrenten (Szenario: Realistischer Rentenwert +2,0%)</h2>
-        <div class="chart-container">
-            <canvas id="rentenChart"></canvas>
+    <div id="tab-method" class="tab-content content-section">
+        <h3>Explizite Datenbasis & Mathematische Berechnungslogik</h3>
+        <p>
+            Dieses System berechnet Brutto- und Nettobeträge auf Basis gesetzlicher Vorgaben der Bundesrepublik Deutschland. Um absolute Transparenz zu gewährleisten, sind nachfolgend alle Teilschritte, Variablen und Formelstrukturen offengelegt.
+        </p>
+
+        <h4>1. Stammdaten & Persönliche Parameter</h4>
+        <ul>
+            <li><strong>Ausgangsbasis Entgeltpunkte (EP):</strong> 45,0822 EP (Verifiziert zum Stichtag 31.12.2023).</li>
+            <li><strong>Betriebliche Altersversorgung (bAV):</strong> Vollauszahlung <strong>1.678,00 € brutto/Monat</strong> bei Eintritt 01.01.2038. Bei Frührenteneintritt (2035–2037) werden VTV-Abschläge angesetzt (Details: Abschnitt 4).</li>
+            <li><strong>Steuerklasse / Splitting-Verfahren:</strong> Zusammenveranlagung (§ 32a Abs. 5 EStG). Einkommen des Ehepartners: 0,00 € — das Modell zeigt damit die exakte Steuerlast ohne Ehegatteneinkünfte.</li>
+        </ul>
+
+        <h4>2. Dynamische Berechnungsschleife der Entgeltpunkte</h4>
+        <p>
+            Für die Jahre 2024 bis 2026 fließen deine Beitragszeiten über die echten gesetzlichen Fixwerte ein. Dein Gehalt ist bis einschließlich 2028 auf 95.856,56 € eingefroren. Ab 2029 wird dieses Gehalt mit der gewählten Steigerungsrate (z.B. +2,0% p.a.) hochgerechnet. Jedes erwerbstätige Jahr errechnet die neuen EP wie folgt:
+        </p>
+        <div class="formula-block">
+            EP_Jahr = Math.min(Individuelles_Gehalt, Beitragsbemessungsgrenze) / Durchschnittsentgelt_Bund
         </div>
+        <p>
+            Wenn die Option „BBG Dynamik“ auf „Fix“ steht, verbleibt die BBG ab 2026 unbeweglich bei 91.800,00 € jährlich. Wird sie auf „Dynamisch“ geschaltet, wächst sie synchron mit dem Durchschnittsentgelt des Bundes.
+        </p>
+
+        <h4>3. Gesetzlicher Rentenabschlag (GRV) bei Frührenteneintritt</h4>
+        <p>
+            Der lebenslange Abschlag beträgt unumstößlich <strong>0,3 % für jeden Monat</strong>, den du vor Erreichen der abschlagsfreien Regelaltersgrenze (simuliert zum 01.01.2038) in den Rentenbezug übergehst. Rechtliche Grundlage ist § 77 SGB VI. Dieser Abschlag mindert direkt den Zugangsfaktor (ZF), der bei regulärem Eintritt 1,0 beträgt und sich pro Monat Vorzug um 0,003 verringert.
+        </p>
+        <ul>
+            <li><strong>01.01.2035:</strong> 36 Monate vorzeitig = 10,8 % Abschlag (ZF = 0,892).</li>
+            <li><strong>01.07.2035:</strong> 30 Monate vorzeitig = 9,0 % Abschlag (ZF = 0,910).</li>
+            <li><strong>01.01.2036:</strong> 24 Monate vorzeitig = 7,2 % Abschlag (ZF = 0,928).</li>
+            <li><strong>01.07.2036:</strong> 18 Monate vorzeitig = 5,4 % Abschlag (ZF = 0,946).</li>
+            <li><strong>01.01.2037:</strong> 12 Monate vorzeitig = 3,6 % Abschlag (ZF = 0,964).</li>
+            <li><strong>01.07.2037:</strong> 6 Monate vorzeitig = 1,8 % Abschlag (ZF = 0,982).</li>
+            <li><strong>01.01.2038:</strong> Stichtag = 0,0 % Abschlag (Voller Rentenwert, ZF = 1,000).</li>
+        </ul>
+
+        <h4>4. Betrieblicher Rentenabschlag (bAV nach VTV § 5)</h4>
+        <p>
+            Der Vollauszahlungsbetrag von 1.678,00 € gilt bei Eintritt zum <strong>01.01.2038</strong>. Bei Frührenteneintritt entstehen VTV-Abschläge, die im Modell als anteiliger linearer Näherungsabschlag von 1,5 % p.a. berechnet werden — auch für Halbjahres-Eintritte (z.B. 01.07.2036 = 1,5 Jahre früher → 2,2 % Abschlag). Die tatsächlichen Beträge sind in der Variablen <code>bavByYear</code> im Code zu hinterlegen, sobald eine offizielle Auskunft des Versorgungsträgers vorliegt.
+        </p>
+
+        <h4>5. Substanzverlust (Verpasste Rentenpunkte)</h4>
+        <p>
+            Gehst du vor dem 01.01.2038 in den Ruhestand, verlierst du nicht nur Rentenvolumen durch den Prozentabschlag, sondern brichst zeitgleich deine Einzahlungsphase ab. Das System simuliert diesen Effekt präzise: Für die Jahre des vorzeitigen Ausstiegs (z.B. 2035 bis 2037 beim Eintrittsjahr 2035) werden der Berechnungsschleife <strong>exakt 0,0000 neue EP</strong> übermittelt. Das verdeutlicht den mathematischen Hebeleffekt: Dir fehlen sowohl die jährlichen Zuwächse auf dem Rentenkonto als auch der ungekürzte Zugangsfaktor auf die Gesamt-EP.
+        </p>
+
+        <h4>6. Präzise Steuerberechnung auf Jahresbasis & Progressionseffekte</h4>
+        <p>
+            Die Monatsrenten werden zur steuerlichen Bewertung mit dem Faktor 12 multipliziert. Nach dem Wachstumschancengesetz (BGBl. I 2024 Nr. 101) beträgt der Besteuerungsanteil für das Eintrittsjahr 2038 genau <strong>90,0 %</strong> (Formel: 82,5 % + (Jahr − 2023) × 0,5 %). Der Freibetrag wird im Folgejahr als absoluter Euro-Betrag fixiert. Wichtig: Jede künftige reguläre Rentenerhöhung nach dem Eintrittsjahr ist zu <strong>100 % steuerpflichtig</strong>, da der Freibetrag nominal ein Leben lang starr bleibt.
+        </p>
+        <div class="formula-block">
+            Jahresfreibetrag_Fix = Jahresbruttorente_GRV_Eintrittsjahr * (1 - 0.90)<br>
+            zvE_Jahr = (Jahresbruttorente_GRV - Jahresfreibetrag_Fix) + Jahresbrutto_bAV
+        </div>
+        <p>
+            Dieses Jahres-zvE wird durch den deutschen Splittingtarif geschleust ($zvE / 2$), nach § 32a EStG versteuert und das Ergebnis verdoppelt. Der ermittelte Jahressteuerbetrag wird anschließend durch 12 geteilt, um den exakten monatlichen Nettoabzug auszugeben. Bei aktivierter „Kalter Progression“ erhöhen sich die Tarifstufen (Grundfreibetrag etc.) jährlich um 1,5 %, wodurch der effektive Steuerdruck gemindert wird.
+        </p>
+
+        <h4>7. Kranken- und Pflegeversicherungsabgaben (KVDR / SGB V) und Freibeträge</h4>
+        <p>
+            Die Abzüge für die gesetzlichen Sozialkassen werden unter Berücksichtigung spezifischer Privilegien exakt berechnet:
+        </p>
+        <ul>
+            <li><strong>Krankenversicherung (KV):</strong> Allgemeiner Satz (14,6 %) + Zusatzbeitrag BKK Mercedes (3,2 %) = <strong>17,8 % Gesamtsatz</strong>. Auf die gesetzliche Rente übernimmt die DRV die Hälfte des <em>allgemeinen</em> Satzes (7,3 % Zuschuss) — der Zusatzbeitrag wird von der DRV <strong>nicht</strong> mitgetragen. Dein Rentneranteil KV beträgt daher 10,5 % (= 7,3 % + 3,2 %). Die bAV profitiert vom gesetzlichen Freibetrag nach § 226 SGB V (176,75 €/Monat). Nur der übersteigende Teil der bAV unterliegt dem vollen Gesamtsatz von 17,8 %.</li>
+            <li><strong>Pflegeversicherung (PV):</strong> Mit 2 Kindern greift der reduzierte Satz von <strong>3,4 %</strong> (§ 55 Abs. 3 SGB XI). Auf die gesetzliche Rente zahlt der Rentner diesen Satz voll (kein DRV-Zuschuss bei PV). Die bAV unterliegt ebenfalls mit 3,4 % der vollen Beitragspflicht ohne Freibetrag.</li>
+        </ul>
+
+        <h4>8. Steuerliche Einordnung der bAV (§ 19 EStG)</h4>
+        <p>
+            Die Betriebsrente aus dem Versorgungstarifvertrag gilt als <strong>Versorgungsbezug nach § 19 Abs. 2 EStG</strong> (nicht § 22 EStG). Es greift der <strong>Versorgungsfreibetrag</strong>, der für Renteneintritt 2038 noch ca. 3,12 % des Jahresbetrags (max. 234 €/Jahr, plus Zuschlag 70 €/Jahr) beträgt und bis 2040 vollständig ausläuft. Dieser Freibetrag wird im Modell <em>nicht</em> angesetzt — das Modell ist insoweit um ca. 25 €/Monat zu pessimistisch (konservative Untergrenze).
+        </p>
+
+        <h4>9. KVDR-Voraussetzung (Pflichtversicherung als Rentner)</h4>
+        <p>
+            Das Modell geht von einer Pflichtversicherung in der Krankenversicherung der Rentner (KVDR) aus. Voraussetzung ist die sog. <strong>9/10-Regelung (§ 5 Abs. 1 Nr. 11 SGB V)</strong>: In der zweiten Hälfte des Erwerbslebens muss mindestens 9/10 der Zeit eine GKV-Mitgliedschaft bestanden haben (Pflicht- oder freiwillig). Freiwillig versicherte Zeiten zählen dabei mit. Ist diese Voraussetzung nicht erfüllt, greift kein automatischer Wechsel in die KVDR — dann würde der volle Beitragssatz ohne DRV-Zuschuss anfallen.
+        </p>
+
+        <h4>10. Restriktionen und bewusste Sicherheitsmargen</h4>
+        <p>
+            Das Dashboard arbeitet bewusst als <strong>konservatives Vorsorgesystem</strong>. Folgende Abzüge werden nicht mindernd angesetzt, führen also zur Überschätzung der Steuerlast:
+        </p>
+        <ul>
+            <li>Sonderausgabenabzug KV-Beiträge (§ 10 Abs. 1 Nr. 3 EStG)</li>
+            <li>Werbungskostenpauschale für Renteneinkünfte (102 €/Jahr)</li>
+            <li>Versorgungsfreibetrag bAV (§ 19 Abs. 2 EStG, ca. 25 €/Monat bis 2040)</li>
+        </ul>
+        <p>Die tatsächliche Nettorente wird daher in der Realität etwas höher ausfallen als hier ausgewiesen.</p>
     </div>
 
-    <p class="footer-note">
-        *Berechnungsbasis: Startwert 45,0822 EP (31.12.2023). Bis Ende 2026 fixiert auf +1,85 EP/Jahr. Die bAV ist dauerhaft mit 1.678,00 € brutto addiert. SV-Abzüge nach Status "freiwillig GKV versichert mit Kindern" (KV: 14,6% + 2,9% Zusatz; PV: 3,4%) in strikter Rangfolge gem. § 238a SGB V (erst GRV, dann bAV bis max. BBG 2026 von 5.812,50 €) inkl. DRV-Zuschuss auf GRV. Einkommensteuer nutzt exakten Splittingtarif gem. § 32a EStG 2026 (Grundfreibetrag 24.696 € p.a. bei ZV) und den durch das Wachstumschancengesetz regulierten Rentenbesteuerungsanteil (90% für 2038).
-    </p>
 </div>
 
 <script>
-    const config = {
-        epStart: 45.0822,
-        bav: 1678.00,
+    const config = { 
+        epStart: 45.0822, 
+        bavFull: 1678.00,   // bAV-Vollauszahlung bei Eintritt 01.01.2038 (laut VTV)
         salaryFixed: 95856.56, 
-        de2024: 45358,
-        rwBase: 42.52,
-        bbg2026: 5812.50
+        de2024: 47085,
+        de2025: 45358,  // Vorläufiges DE 2025 laut SV-Rechengrößen-VO BMAS
+        de2026: 45816,  // Vorläufiges DE 2026 laut SV-Rechengrößen-VO BMAS
+        bbg2024: 90600, bbg2025: 96000, bbg2026: 91800,
+        rwBase: 42.52,  // Rentenwert West ab 01.07.2026 (beschlossen); ab 01.07.2025: 42,09 €
+        bavGkvFreibetrag: 176.75 * 12,
+        // KV: Allgemeiner Satz 14,6% + Zusatzbeitrag BKK Mercedes 3,2% = 17,8% gesamt
+        // DRV-Zuschuss: 7,3% (nur auf den allgemeinen Satz, nicht auf den Zusatzbeitrag)
+        // Rentneranteil KV = 7,3% + 3,2% = 10,5%
+        kvGesamtsatz: 0.178,
+        kvDrvZuschuss: 0.073,
+        pvSatz: 0.034   // Mit 2+ Kindern: 3,4% (§ 55 Abs. 3 SGB XI)
     };
 
+    // bAV-Betrag je Eintrittsjahr: 1.678 € ist der Endwert bei Eintritt 2038.
+    // Bei Frührenteneintritt entstehen VTV-Abschläge — hier als separate Werte zu pflegen.
+    // HINWEIS: Bitte die Werte mit der tatsächlichen VTV-Auskunft befüllen.
+    // Solange unbekannt, wird ein linearer Näherungsabschlag von 1,5% p.a. (anteilig) verwendet.
+    const bavByYear = {
+        2035.0: config.bavFull * Math.pow(1 - 0.015, 3.0),  // 01.01.2035: 3,0 J. früher → ~4,4% Abschlag
+        2035.5: config.bavFull * Math.pow(1 - 0.015, 2.5),  // 01.07.2035: 2,5 J. früher → ~3,7% Abschlag
+        2036.0: config.bavFull * Math.pow(1 - 0.015, 2.0),  // 01.01.2036: 2,0 J. früher → ~3,0% Abschlag
+        2036.5: config.bavFull * Math.pow(1 - 0.015, 1.5),  // 01.07.2036: 1,5 J. früher → ~2,2% Abschlag
+        2037.0: config.bavFull * Math.pow(1 - 0.015, 1.0),  // 01.01.2037: 1,0 J. früher → ~1,5% Abschlag
+        2037.5: config.bavFull * Math.pow(1 - 0.015, 0.5),  // 01.07.2037: 0,5 J. früher → ~0,7% Abschlag
+        2038.0: config.bavFull                               // 01.01.2038: kein Abschlag
+    };
+    
     const timelines = [
-        { dateStr: "01.01.2035", year: 2035, month: 0, deltaYears: 8.63, discount: 10.8 },
-        { dateStr: "01.07.2035", year: 2035, month: 6, deltaYears: 9.12, discount: 9.0 },
-        { dateStr: "01.01.2036", year: 2036, month: 0, deltaYears: 9.63, discount: 7.2 },
-        { dateStr: "01.07.2036", year: 2036, month: 6, deltaYears: 10.12, discount: 5.4 },
-        { dateStr: "01.01.2037", year: 2037, month: 0, deltaYears: 10.63, discount: 3.6 },
-        { dateStr: "01.07.2037", year: 2037, month: 6, deltaYears: 11.12, discount: 1.8 },
-        { dateStr: "01.01.2038", year: 2038, month: 0, deltaYears: 11.63, discount: 0.0 }
+        { dateStr: "2035 (01.01)", year: 2035, months: 36, discount: 10.8, bavKey: 2035.0 },
+        { dateStr: "2035 (01.07)", year: 2035, months: 30, discount:  9.0, bavKey: 2035.5 },
+        { dateStr: "2036 (01.01)", year: 2036, months: 24, discount:  7.2, bavKey: 2036.0 },
+        { dateStr: "2036 (01.07)", year: 2036, months: 18, discount:  5.4, bavKey: 2036.5 },
+        { dateStr: "2037 (01.01)", year: 2037, months: 12, discount:  3.6, bavKey: 2037.0 },
+        { dateStr: "2037 (01.07)", year: 2037, months:  6, discount:  1.8, bavKey: 2037.5 },
+        { dateStr: "2038 (01.01)", year: 2038, months:  0, discount:  0.0, bavKey: 2038.0 }
     ];
-
-    const rwOptions = [
+    
+    const rwOptions = [ 
         { name: "Eingefroren (0,0%)", rate: 0.00 },
-        { name: "Konservativ (+1,0%)", rate: 0.01 },
+        { name: "Konservativ (+1,0%)", rate: 0.01 }, 
         { name: "Realistisch (+2,0%)", rate: 0.02 },
         { name: "Optimistisch (+2,5%)", rate: 0.025 }
     ];
-
     const deOptions = [
-        { name: "Gering (+1,5%)", rate: 0.015 },
-        { name: "Moderat (+2,5%)", rate: 0.025 },
-        { name: "Stark (+3,5%)", rate: 0.035 }
+        { name: "Gering (+1,0%)",       rate: 0.010 },
+        { name: "Moderat (+1,5%)",      rate: 0.015 },
+        { name: "Realistisch (+2,0%)",  rate: 0.020 },
+        { name: "Optimistisch (+2,5%)", rate: 0.025 }
     ];
 
-    let myChart = null;
+    let bruttoChartInst = null; let nettoChartInst = null;
+    let chartData = { labels: [], bGering: [], bModerat: [], bRealistisch: [], bOptimistisch: [], nGering: [], nModerat: [], nRealistisch: [], nOptimistisch: [] };
+
+    function switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        btn.classList.add('active');
+    }
 
     function getCalculatedEP(t, deRate, salaryRate) {
-        let ep = config.epStart + (1.85 * 3); 
-        let deCurrent = config.de2024;
-        let mySalaryCurrent = config.salaryFixed; 
-        deCurrent = deCurrent * (1 + deRate) * (1 + deRate);
-        let currentYear = 2027;
+        let ep = config.epStart;
         
-        while (currentYear <= t.year) {
-            let shareOfYear = 1.0;
-            if (currentYear === t.year) {
-                if (t.month === 0) break; 
-                else shareOfYear = t.month / 12; 
-            }
-            
-            let effectiveDe = deCurrent * (1 + (deRate * shareOfYear));
-            let effectiveSalary = mySalaryCurrent;
-            if (currentYear > 2028) {
-                effectiveSalary = mySalaryCurrent * (1 + (salaryRate * shareOfYear));
-            }
+        ep += Math.min(config.salaryFixed, config.bbg2024) / config.de2024;
+        ep += Math.min(config.salaryFixed, config.bbg2025) / config.de2025;
+        ep += Math.min(config.salaryFixed, config.bbg2026) / config.de2026;
 
-            if (shareOfYear > 0) {
-                let factor = effectiveSalary / effectiveDe;
-                ep += Math.min(2.05, factor) * shareOfYear; 
-            }
-            
-            if (currentYear < t.year || (currentYear === t.year && t.month > 0)) {
-                deCurrent = deCurrent * (1 + deRate);
-                if (currentYear >= 2028) mySalaryCurrent = mySalaryCurrent * (1 + salaryRate);
-            }
-            currentYear++;
+        let deCurrent = config.de2026 * (1 + deRate);
+        let bbgCurrent = config.bbg2026 * (1 + deRate);
+        let mySalaryCurrent = config.salaryFixed;
+
+        // Letztes volles Arbeitsjahr bestimmen
+        // Bei 01.01-Eintritt: letzte volle EP bis Jahr-1
+        // Bei 01.07-Eintritt: volle EP bis Jahr-1, plus halbes Jahr im Eintrittsjahr
+        const isHalfYear = t.bavKey % 1 !== 0;  // true wenn 01.07-Termin
+        const lastFullYear = t.year - 1;
+
+        for(let y = 2027; y <= lastFullYear; y++) {
+            if(y >= 2029) mySalaryCurrent *= (1 + salaryRate);
+            ep += Math.min(mySalaryCurrent, bbgCurrent) / deCurrent;
+            deCurrent *= (1 + deRate);
+            bbgCurrent *= (1 + deRate);
         }
+
+        // Bei 01.07-Eintritt: halbes Jahr im Eintrittsjahr hinzurechnen
+        if (isHalfYear && t.year >= 2027) {
+            if(t.year >= 2029) mySalaryCurrent *= (1 + salaryRate);
+            ep += (Math.min(mySalaryCurrent, bbgCurrent) / deCurrent) * 0.5;
+        }
+
         return ep;
     }
 
-    // Splittingtarif 2026 nach § 32a EStG
-    function calculateTaxSplitting2026(annualIncome) {
-        let zve = annualIncome / 2; // Einkommen halbieren
+    function calculateTax(annualIncome, year, applyProgression) {
+        let factor = applyProgression ? Math.pow(1.015, year - 2026) : 1;
+        
+        let t1 = 12348 * 2 * factor; 
+        let t2 = 17799 * 2 * factor; 
+        let t3 = 69878 * 2 * factor; 
+        let t4 = 277825 * 2 * factor;
+        
+        let zve = annualIncome / 2; 
         let est = 0;
         
-        if (zve <= 12348) {
-            est = 0;
-        } else if (zve <= 17799) {
-            let y = (zve - 12348) / 10000;
-            est = (914.51 * y + 1400) * y;
-        } else if (zve <= 69878) {
-            let z = (zve - 17799) / 10000;
-            est = (173.1 * z + 2397) * z + 1034.87;
-        } else if (zve <= 277825) {
-            est = 0.42 * zve - 11135.63;
-        } else {
-            est = 0.45 * zve - 19470.38;
+        if (annualIncome <= t1) est = 0;
+        else if (annualIncome <= t2) { 
+            let y = ((annualIncome / 2) - (t1 / 2)) / 10000; 
+            est = (914.51 * y + 1400) * y; 
+        }
+        else if (annualIncome <= t3) { 
+            let z = ((annualIncome / 2) - (t2 / 2)) / 10000; 
+            est = (173.1 * z + 2397) * z + 1034.87 * factor; 
+        }
+        else if (annualIncome <= t4) { 
+            est = 0.42 * zve - 11135.63 * factor; 
+        }
+        else { 
+            est = 0.45 * zve - 19470.38 * factor; 
         }
         
-        return Math.max(0, est * 2); // Steuer verdoppeln
+        return Math.max(0, est * 2); 
     }
 
-    function calculateValues(t, rwRate, deRate, salaryRate) {
+    function calculateValues(t, rwRate, deRate, salaryRate, isDynamicBBG, applyInflation, applyProgression) {
         const ep = getCalculatedEP(t, deRate, salaryRate);
-        
-        let effectiveRwYears = t.year - 2026;
-        if (t.month < 6) effectiveRwYears -= 1; 
-        let rwAtRetirement = config.rwBase * Math.pow(1 + rwRate, Math.max(0, effectiveRwYears));
-
+        // Rentenwert zum Eintrittstermin: bei 01.07-Terminen zusätzlich 0,5 Jahresschritte
+        const yearOffset = t.bavKey - 2026;  // z.B. 2035.5 - 2026 = 9.5
+        let rwAtRetirement = config.rwBase * Math.pow(1 + rwRate, yearOffset);
         let grvBrutto = ep * rwAtRetirement * (1 - (t.discount / 100));
-        let bavBrutto = config.bav;
-        let totalBrutto = grvBrutto + bavBrutto;
         
-        // --- 1. SOZIALVERSICHERUNG (Strikte Rangfolge SGB V § 238a) ---
-        let kvRate = 0.175; // 14.6% + 2.9%
-        let pvRate = 0.034; // 3.4% Basis-PV mit Kindern
+        // bAV je Eintrittstermin aus bavByYear-Tabelle (Frührentner-Abschläge berücksichtigt)
+        const bav = bavByYear[t.bavKey] ?? config.bavFull;
+        let totalBrutto = grvBrutto + bav;
         
-        let assessedGrv = Math.min(grvBrutto, config.bbg2026);
-        let remainingBbgForBav = Math.max(0, config.bbg2026 - assessedGrv);
-        let assessedBav = Math.min(bavBrutto, remainingBbgForBav);
+        let annualBBG = isDynamicBBG ? (config.bbg2026 * 12) * Math.pow(1 + deRate, t.year - 2026) : (config.bbg2026 * 12);
         
-        let kvPvGrv = (assessedGrv * (kvRate + pvRate)) - (assessedGrv * 0.073); // Abzug DRV-Zuschuss (7,3%)
-        let kvPvBav = assessedBav * (kvRate + pvRate);
+        let assessedGrv = Math.min(grvBrutto, annualBBG);
+        let remainingBBG = Math.max(0, annualBBG - assessedGrv);
         
-        let totalKvPv = kvPvGrv + kvPvBav;
+        // KV-Freibetrag § 226 SGB V: 176,75 €/Monat (2026)
+        let bavKvFreibetrag = config.bavGkvFreibetrag / 12;
+        let assessedBavKV = Math.min(Math.max(0, bav - bavKvFreibetrag), remainingBBG);
+        let assessedBavPV = Math.min(bav, remainingBBG); 
+        
+        // KV auf GRV: Gesamtsatz 17,8% abzgl. DRV-Zuschuss 7,3% = Rentneranteil 10,5%
+        // KV auf bAV: voller Gesamtsatz 17,8% (kein DRV-Zuschuss auf Betriebsrenten)
+        // PV: 3,4% (mit 2+ Kindern) — kein DRV-Zuschuss auf PV
+        let kvPvGrv = (assessedGrv * (config.kvGesamtsatz + config.pvSatz)) - (assessedGrv * config.kvDrvZuschuss); 
+        let kvPvBav = (assessedBavKV * config.kvGesamtsatz) + (assessedBavPV * config.pvSatz);
+        
+        let grvBruttoAnnual = grvBrutto * 12;
+        let bavAnnual = bav * 12;
 
-        // --- 2. STEUERBERECHNUNG (Wachstumschancengesetz 2024 & Splitting 2026) ---
-        // Anstieg um 0,5% p.a. ab 2023 (2022 = 82%)
-        let taxPortion = 0.825 + (t.year - 2023) * 0.005;
-        if (taxPortion > 1.0) taxPortion = 1.0;
+        // Besteuerungsanteil nach Wachstumschancengesetz: ab Kohorte 2023 +0,5% p.a.
+        // 2023 = 82,5% → 2024 = 83,0% ... Hinweis: Gesetz sieht 83,0% für 2024 vor
+        // Korrekte Tabellenwerte laut § 22 Nr. 1 Satz 3a EStG i.d.F. WCG:
+        // 2023: 82,5% | 2024: 83,0% | 2025: 83,5% | ... | 2058: 100%
+        // Formel: 0,825 + (Jahr - 2023) * 0,005, gedeckelt auf 1,0
+        let taxPortionAtRetirement = Math.min(1.0, 0.825 + (t.year - 2023) * 0.005);
+        let fixedRentenfreibetragAnnual = grvBruttoAnnual * (1 - taxPortionAtRetirement);
         
-        let grvTaxFreeAnnual = grvBrutto * 12 * (1 - taxPortion);
-        let taxableGrvAnnual = (grvBrutto * 12) - grvTaxFreeAnnual;
-        let taxableBavAnnual = bavBrutto * 12; // 100% steuerpflichtig laut Vorgabe
-        let totalTaxableAnnual = taxableGrvAnnual + taxableBavAnnual;
+        let taxableGrvAnnual = Math.max(0, grvBruttoAnnual - fixedRentenfreibetragAnnual);
+        let taxableTotalAnnual = taxableGrvAnnual + bavAnnual;
         
-        let totalAnnualTax = calculateTaxSplitting2026(totalTaxableAnnual);
-        let totalMonthlyTax = totalAnnualTax / 12;
+        let totalMonthlyTax = calculateTax(taxableTotalAnnual, t.year, applyProgression) / 12;
         
-        // Proportionale Aufteilung der ermittelten Steuer zur Visualisierung
-        let taxGrv = totalMonthlyTax * (taxableGrvAnnual / (totalTaxableAnnual || 1));
-        let taxBav = totalMonthlyTax * (taxableBavAnnual / (totalTaxableAnnual || 1));
-        
-        let totalNetto = totalBrutto - totalKvPv - totalMonthlyTax;
+        let totalNetto = totalBrutto - (kvPvGrv + kvPvBav) - totalMonthlyTax;
+        let realNetto = applyInflation ? totalNetto / Math.pow(1.02, t.year - 2026) : totalNetto;
 
-        return {
-            ep: ep,
-            totalBrutto: Math.round(totalBrutto),
-            totalNetto: Math.round(totalNetto),
-            grv: {
-                brutto: Math.round(grvBrutto),
-                kvPv: Math.round(kvPvGrv),
-                tax: Math.round(taxGrv)
-            },
-            bav: {
-                brutto: Math.round(bavBrutto),
-                kvPv: Math.round(kvPvBav),
-                tax: Math.round(taxBav)
+        return { ep, totalBrutto, totalNetto, realNetto, grvBrutto, bav, kvPvGrv, kvPvBav, tax: totalMonthlyTax };
+    }
+
+    function generate7ColumnHistory() {
+        const salaryRate = parseFloat(document.getElementById('salarySelect').value);
+        const isDynamicBBG = document.getElementById('bbgSelect').value === 'dynamic';
+
+        const rawData = [
+            {y: 2010, rw: 27.20, de: 30506, sal: 0, bbg: 66000}, {y: 2011, rw: 27.47, de: 30879, sal: 0, bbg: 66000}, {y: 2012, rw: 28.07, de: 31144, sal: 0, bbg: 67200}, 
+            {y: 2013, rw: 28.14, de: 31890, sal: 0, bbg: 69600}, {y: 2014, rw: 28.61, de: 32771, sal: 0, bbg: 71400}, {y: 2015, rw: 29.21, de: 33580, sal: 0, bbg: 72600}, 
+            {y: 2016, rw: 30.45, de: 34514, sal: 0, bbg: 74400}, {y: 2017, rw: 31.03, de: 35451, sal: 0, bbg: 76800}, {y: 2018, rw: 32.03, de: 36567, sal: 0, bbg: 78000}, 
+            {y: 2019, rw: 33.05, de: 37873, sal: 0, bbg: 80400}, {y: 2020, rw: 34.19, de: 39167, sal: 0, bbg: 82800}, {y: 2021, rw: 34.19, de: 40463, sal: 0, bbg: 85200}, 
+            {y: 2022, rw: 36.02, de: 42053, sal: 0, bbg: 84600}, {y: 2023, rw: 37.60, de: 44732, sal: 0, bbg: 87600}, {y: 2024, rw: 39.32, de: 47085, sal: config.salaryFixed, bbg: config.bbg2024}, 
+            {y: 2025, rw: 42.09, de: 45358, sal: config.salaryFixed, bbg: config.bbg2025}, {y: 2026, rw: 42.52, de: 45816, sal: config.salaryFixed, bbg: config.bbg2026}
+            // Hinweis: RW 42,09 € gilt ab 01.07.2025, RW 42,52 € gilt ab 01.07.2026 (beschlossen)
+        ];
+
+        let currentRW = config.rwBase;
+        let currentDE = config.de2026;
+        let currentSal = config.salaryFixed;
+        let currentBBG = config.bbg2026;
+        
+        // Realistisches Szenario (+2,0% p.a.) als Referenz für die Historische Tabelle
+        for(let y = 2027; y <= 2038; y++) {
+            currentRW *= 1.02; 
+            currentDE *= 1.020;
+            if(isDynamicBBG) {
+                currentBBG *= 1.025;
             }
-        };
+            if(y >= 2029) {
+                currentSal *= (1 + salaryRate);
+            }
+            rawData.push({y: y, rw: currentRW, de: currentDE, sal: currentSal, bbg: currentBBG});
+        }
+
+        let html = "";
+        for(let i = 0; i < rawData.length; i++) {
+            let row = rawData[i];
+            let rwChangeStr = "-";
+            let deChangeStr = "-";
+            
+            if(i > 0) {
+                let rwChange = ((row.rw - rawData[i-1].rw) / rawData[i-1].rw) * 100;
+                let deChange = ((row.de - rawData[i-1].de) / rawData[i-1].de) * 100;
+                rwChangeStr = `+${rwChange.toFixed(1)} %`;
+                deChangeStr = `+${deChange.toFixed(1)} %`;
+            }
+            
+            let salStr = "-";
+            let epYearStr = "-";
+            
+            if (row.y >= 2024) {
+                salStr = `${Math.round(row.sal).toLocaleString('de-DE')} €`;
+                let effectiveEarn = Math.min(row.sal, row.bbg);
+                let epYear = effectiveEarn / row.de;
+                epYearStr = epYear.toFixed(4);
+            } else {
+                salStr = '<span style="color:var(--text-muted);">k.A.</span>';
+                epYearStr = '<span style="color:var(--text-muted);">k.A.</span>';
+            }
+
+            const highlightClass = row.y === 2038 ? 'style="border: 2px solid var(--magic-lime); font-weight:bold; background: #1e293b;"' : '';
+            
+            html += `<tr ${highlightClass}>
+                <td style="font-weight:bold; color:#fff;">${row.y} ${row.y >= 2027 ? '(Prog.)' : ''}</td>
+                <td style="color:var(--magic-lime);">${row.rw.toFixed(2)} €</td>
+                <td style="color:var(--text-muted);">${rwChangeStr}</td>
+                <td style="color:var(--magic-cyan);">${Math.round(row.de).toLocaleString('de-DE')} €</td>
+                <td style="color:var(--text-muted);">${deChangeStr}</td>
+                <td style="color:#fff; font-weight: 500;">${salStr}</td>
+                <td style="color:var(--magic-lime); font-weight: bold;">${epYearStr}</td>
+            </tr>`;
+        }
+        document.getElementById('combined-history-tbody').innerHTML = html;
     }
 
     function recalculateAll() {
         const salaryRate = parseFloat(document.getElementById('salarySelect').value);
-        const tbody = document.getElementById('matrix-tbody');
+        const isDynamicBBG = document.getElementById('bbgSelect').value === 'dynamic';
+        const applyInflation = document.getElementById('inflationCheck').checked;
+        const applyProgression = document.getElementById('progressionCheck').checked;
         
-        let htmlBuffer = "";
-        let chartLabels = [];
-        let chartDataGering = [];
-        let chartDataModerat = [];
-        let chartDataStark = [];
-
-        const maxTimeline = timelines[timelines.length - 1];
+        let html = "";
+        chartData = { labels: [], bGering: [], bModerat: [], bRealistisch: [], bOptimistisch: [], nGering: [], nModerat: [], nRealistisch: [], nOptimistisch: [] };
 
         timelines.forEach((t, tIdx) => {
             const blockClass = tIdx % 2 === 0 ? "block-type-a" : "block-type-b";
-            chartLabels.push(t.dateStr);
+            chartData.labels.push(t.dateStr);
 
             rwOptions.forEach((rwOpt, rIdx) => {
-                let rowHtml = `<tr class="${blockClass} ${rIdx === 0 ? 'border-top-highlight' : ''}">`;
+                html += `<tr class="${blockClass}">`;
                 
-                if (rIdx === 0) {
-                    rowHtml += `
-                        <td rowspan="4" class="date-cell">
-                            ${t.dateStr}
-                            <span class="info-badge">Abschlag: <strong>${t.discount.toFixed(1)}%</strong></span>
-                        </td>`;
-                }
-
-                rowHtml += `<td class="rw-cell">${rwOpt.name}</td>`;
+                if (rIdx === 0) html += `<td rowspan="${rwOptions.length}" class="date-cell">${t.dateStr}<br><span style="font-size:0.8rem; font-weight:normal;">Abschlag: ${t.discount}%</span></td>`;
+                html += `<td class="rw-cell">${rwOpt.name}</td>`;
 
                 deOptions.forEach((deOpt, dIdx) => {
-                    let res = calculateValues(t, rwOpt.rate, deOpt.rate, salaryRate);
+                    let res = calculateValues(t, rwOpt.rate, deOpt.rate, salaryRate, isDynamicBBG, applyInflation, applyProgression);
                     
-                    const maxEpForThisColumn = getCalculatedEP(maxTimeline, deOpt.rate, salaryRate);
-                    const missingEp = Math.max(0, maxEpForThisColumn - res.ep).toFixed(2);
-                    const missingText = missingEp > 0 ? `(-${missingEp})` : '';
-
-                    rowHtml += `
-                        <td>
-                            <div class="val-block">
-                                <div class="ep-row">
-                                    <span class="b-ep">${res.ep.toFixed(2)} EP</span>
-                                    <span class="b-missing">${missingText}</span>
-                                </div>
-                                
-                                <div class="totals-row">
-                                    <span class="b-brutto">Ges-B: ${res.totalBrutto.toLocaleString('de-DE')} €</span>
-                                </div>
-
-                                <div class="split-container">
-                                    <div class="split-segment">
-                                        <div class="split-title">Gesetzliche Rente (GRV)</div>
-                                        <div class="data-line"><span>Brutto:</span><span>${res.grv.brutto.toLocaleString('de-DE')} €</span></div>
-                                        <div class="data-line minus"><span>- KV/PV:</span><span>${res.grv.kvPv.toLocaleString('de-DE')} €</span></div>
-                                        <div class="data-line minus"><span>- Steuer:</span><span>${res.grv.tax.toLocaleString('de-DE')} €</span></div>
-                                    </div>
-                                    <div class="split-segment">
-                                        <div class="split-title bav">Betriebsrente (bAV)</div>
-                                        <div class="data-line"><span>Brutto:</span><span>${res.bav.brutto.toLocaleString('de-DE')} €</span></div>
-                                        <div class="data-line minus"><span>- KV/PV:</span><span>${res.bav.kvPv.toLocaleString('de-DE')} €</span></div>
-                                        <div class="data-line minus"><span>- Steuer:</span><span>${res.bav.tax.toLocaleString('de-DE')} €</span></div>
-                                    </div>
-                                </div>
-
-                                <span class="b-netto">Ges-N: ${res.totalNetto.toLocaleString('de-DE')} €</span>
-                            </div>
-                        </td>`;
-
-                    if (rIdx === 2) {
-                        if (dIdx === 0) chartDataGering.push(res.totalNetto);
-                        if (dIdx === 1) chartDataModerat.push(res.totalNetto);
-                        if (dIdx === 2) chartDataStark.push(res.totalNetto);
+                    if(rwOpt.rate === 0.02) { 
+                        if(dIdx===0) { chartData.bGering.push(res.totalBrutto);      chartData.nGering.push(res.totalNetto); }
+                        if(dIdx===1) { chartData.bModerat.push(res.totalBrutto);     chartData.nModerat.push(res.totalNetto); }
+                        if(dIdx===2) { chartData.bRealistisch.push(res.totalBrutto); chartData.nRealistisch.push(res.totalNetto); }
+                        if(dIdx===3) { chartData.bOptimistisch.push(res.totalBrutto);chartData.nOptimistisch.push(res.totalNetto); }
                     }
-                });
 
-                rowHtml += `</tr>`;
-                htmlBuffer += rowHtml;
+                    html += `<td>
+                        <div class="val-block">
+                            <span class="b-ep">${res.ep.toFixed(4)} EP</span>
+                            <span class="b-brutto">Ges-B: ${Math.round(res.totalBrutto).toLocaleString('de-DE')} €</span>
+                            <div class="split-container">
+                                <div class="data-line"><span>GRV Brutto:</span><span>${Math.round(res.grvBrutto).toLocaleString('de-DE')} €</span></div>
+                                <div class="data-line"><span>bAV Brutto:</span><span>${Math.round(res.bav).toLocaleString('de-DE')} €</span></div>
+                                <div class="data-line minus"><span>- SV GRV:</span><span>${Math.round(res.kvPvGrv).toLocaleString('de-DE')} €</span></div>
+                                <div class="data-line minus"><span>- SV bAV (inkl. FB):</span><span>${Math.round(res.kvPvBav).toLocaleString('de-DE')} €</span></div>
+                                <div class="data-line minus"><span>- Steuer:</span><span>${Math.round(res.tax).toLocaleString('de-DE')} €</span></div>
+                            </div>
+                            <span class="b-netto">Ges-N: ${Math.round(res.totalNetto).toLocaleString('de-DE')} €</span>
+                            ${applyInflation ? `<span class="b-netto-real">Kaufkraft (Real): ${Math.round(res.realNetto).toLocaleString('de-DE')} €</span>` : ''}
+                        </div>
+                    </td>`;
+                });
+                html += `</tr>`;
             });
         });
-
-        tbody.innerHTML = htmlBuffer;
-        renderGroupedBarChart(chartLabels, chartDataGering, chartDataModerat, chartDataStark);
+        document.getElementById('matrix-tbody').innerHTML = html;
+        generate7ColumnHistory();
+        if(document.getElementById('tab-charts').classList.contains('active')) renderCharts();
     }
 
-    function renderGroupedBarChart(labels, gering, moderat, stark) {
-        const ctx = document.getElementById('rentenChart').getContext('2d');
-        if (myChart) {
-            myChart.destroy();
-        }
+    function renderCharts() {
+        const ctxB = document.getElementById('bruttoChart').getContext('2d');
+        const ctxN = document.getElementById('nettoChart').getContext('2d');
+        
+        if (bruttoChartInst) bruttoChartInst.destroy();
+        if (nettoChartInst) nettoChartInst.destroy();
 
-        myChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'Durchschnittsentgelt: Geringes Wachstum (+1,5%)',
-                        data: gering,
-                        backgroundColor: '#ccff00',
-                        hoverBackgroundColor: '#ddff44',
-                        borderRadius: 6
-                    },
-                    {
-                        label: 'Durchschnittsentgelt: Moderates Wachstum (+2,5%)',
-                        data: moderat,
-                        backgroundColor: '#38bdf8',
-                        hoverBackgroundColor: '#7dd3fc',
-                        borderRadius: 6
-                    },
-                    {
-                        label: 'Durchschnittsentgelt: Starkes Wachstum (+3,5%)',
-                        data: stark,
-                        backgroundColor: '#a855f7',
-                        hoverBackgroundColor: '#c084fc',
-                        borderRadius: 6
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { 
-                        position: 'top', 
-                        labels: { color: '#f8fafc', font: { size: 11, weight: '500' }, boxWidth: 12, padding: 20 } 
-                    },
-                    tooltip: { mode: 'index', intersect: false }
-                },
-                scales: {
-                    y: {
-                        grid: { color: '#242f4d' },
-                        title: { display: true, text: 'Netto-Gesamtrente (€)', color: '#94a3b8', font: { weight: 'bold' } },
-                        ticks: { color: '#94a3b8', callback: function(value) { return value.toLocaleString('de-DE') + ' €'; } }
-                    },
-                    x: {
-                        grid: { display: false },
-                        title: { display: true, text: 'Renteneintrittsdatum', color: '#94a3b8', font: { weight: 'bold' } },
-                        ticks: { color: '#94a3b8' }
-                    }
-                }
-            }
-        });
+        const opts = { responsive: true, maintainAspectRatio: false, scales: { y: { grid: { color: '#242f4d' }, ticks: { color: '#94a3b8' } }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } }, plugins: { legend: { labels: { color: '#fff' } } } };
+
+        bruttoChartInst = new Chart(ctxB, { type: 'bar', data: { labels: chartData.labels, datasets: [
+            { label: 'Gering (+1,0%)',      data: chartData.bGering,      backgroundColor: '#64748b' },
+            { label: 'Moderat (+1,5%)',     data: chartData.bModerat,     backgroundColor: '#ccff00' },
+            { label: 'Realistisch (+2,0%)', data: chartData.bRealistisch, backgroundColor: '#38bdf8' },
+            { label: 'Optimistisch (+2,5%)',data: chartData.bOptimistisch,backgroundColor: '#a855f7' }
+        ]}, options: opts });
+
+        nettoChartInst = new Chart(ctxN, { type: 'bar', data: { labels: chartData.labels, datasets: [
+            { label: 'Gering (+1,0%)',      data: chartData.nGering,      backgroundColor: '#64748b' },
+            { label: 'Moderat (+1,5%)',     data: chartData.nModerat,     backgroundColor: '#ccff00' },
+            { label: 'Realistisch (+2,0%)', data: chartData.nRealistisch, backgroundColor: '#38bdf8' },
+            { label: 'Optimistisch (+2,5%)',data: chartData.nOptimistisch,backgroundColor: '#a855f7' }
+        ]}, options: opts });
     }
 
-    window.onload = recalculateAll;
+    window.onload = function() {
+        recalculateAll();
+    };
 </script>
 </body>
 </html>
